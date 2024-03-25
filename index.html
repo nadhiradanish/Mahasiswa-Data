@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Mahasiswa</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container mt-5">
+  <h2>Data Mahasiswa</h2>
+  <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#tambahModal">
+    Tambah Data
+  </button>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>NIM</th>
+        <th>Nama</th>
+        <th>Alamat</th>
+        <th>Pengaturan</th>
+      </tr>
+    </thead>
+    <tbody id="dataContainer"></tbody>
+  </table>
+</div>
+
+<!-- Modal Tambah Data -->
+<div class="modal fade" id="tambahModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Tambah Data Mahasiswa</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="tambahForm">
+          <div class="form-group">
+            <label for="nim">NIM:</label>
+            <input type="text" class="form-control" id="nim" required>
+          </div>
+          <div class="form-group">
+            <label for="nama">Nama Lengkap:</label>
+            <input type="text" class="form-control" id="nama" required>
+          </div>
+          <div class="form-group">
+            <label for="alamat">Alamat:</label>
+            <input type="text" class="form-control" id="alamat" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Tambah</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Edit Data -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit Data Mahasiswa</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editForm">
+          <input type="hidden" id="editId">
+          <div class="form-group">
+            <label for="editNama">Nama Lengkap:</label>
+            <input type="text" class="form-control" id="editNama" required>
+          </div>
+          <div class="form-group">
+            <label for="editAlamat">Alamat:</label>
+            <input type="text" class="form-control" id="editAlamat" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Alert -->
+<div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Pesan</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="alertContent">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container my-3">
+  <div class="row">
+    <div class="col-12">
+      <div class="form-check">
+        <input type="checkbox" name="theme" class="form-check-input" id="theme-toggle" value="dark-theme" onchange="toggleTheme()">
+        <label for="theme-toggle" class="form-check-label">Switch to Dark Theme</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="theme.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+  
+    // Data Mahasiswa
+let mahasiswa = [];
+
+// Tampilkan Data Mahasiswa
+function tampilkanData() {
+  let html = '';
+  mahasiswa.forEach((item, index) => {
+    html += `<tr>
+                <td>${item.nim}</td>
+                <td>${item.nama}</td>
+                <td>${item.alamat}</td>
+                <td>
+                  <button class="btn btn-primary btn-edit" data-id="${index}" data-toggle="modal" data-target="#editModal">Edit</button>
+                  <button class="btn btn-danger btn-delete" data-id="${index}">Hapus</button>
+                </td>
+              </tr>`;
+  });
+  $('#dataContainer').html(html);
+}
+
+// Tambah Data Mahasiswa
+$('#tambahForm').submit(function(e) {
+  e.preventDefault();
+  let nim = $('#nim').val();
+  let nama = $('#nama').val();
+  let alamat = $('#alamat').val();
+  if (nim && nama && alamat) {
+    mahasiswa.push({ nim: nim, nama: nama, alamat: alamat });
+    $('#tambahModal').modal('hide');
+    $('#nim').val('');
+    $('#nama').val('');
+    $('#alamat').val('');
+    tampilkanData();
+    showAlert('success', 'Berhasil menambahkan data baru.');
+  } else {
+    showAlert('danger', 'Data tidak lengkap.');
+  }
+});
+
+// Edit Data Mahasiswa
+$(document).on('click', '.btn-edit', function() {
+  let id = $(this).data('id');
+  let data = mahasiswa[id];
+  $('#editId').val(id);
+  $('#editNama').val(data.nama);
+  $('#editAlamat').val(data.alamat);
+});
+
+$('#editForm').submit(function(e) {
+  e.preventDefault();
+  let id = $('#editId').val();
+  let nama = $('#editNama').val();
+  let alamat = $('#editAlamat').val();
+  if (nama && alamat) {
+    mahasiswa[id].nama = nama;
+    mahasiswa[id].alamat = alamat;
+    $('#editModal').modal('hide');
+    tampilkanData();
+    showAlert('success', 'Berhasil melakukan update data.');
+  } else {
+    showAlert('danger', 'Data tidak lengkap.');
+  }
+});
+
+// Hapus Data Mahasiswa
+$(document).on('click', '.btn-delete', function() {
+  let id = $(this).data('id');
+  mahasiswa.splice(id, 1);
+  tampilkanData();
+  showAlert('success', 'Berhasil menghapus data.');
+});
+
+// Dummy Data
+mahasiswa.push({ nim: '12345', nama: 'John Doe', alamat: 'Jl. Contoh No. 123' });
+mahasiswa.push({ nim: '67890', nama: 'Jane Smith', alamat: 'Jl. Contoh No. 456' });
+
+// Alert
+function showAlert(type, message) {
+  let alertContent = `<div class="alert alert-${type}" role="alert">${message}</div>`;
+  $('#alertContent').html(alertContent);
+  $('#alertModal').modal('show');
+  setTimeout(function() {
+    $('#alertModal').modal('hide');
+  }, 3000); // Hide the alert after 3 seconds
+}
+
+// Initial display of data
+tampilkanData();
+
+</script>
+</body>
+</html>
